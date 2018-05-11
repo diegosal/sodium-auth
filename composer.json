@@ -1,0 +1,29 @@
+{
+    "name": "sodium/auth",
+    "description": "auth module",
+    "authors": [
+        {
+            "name": "Diego Gonzalez",
+            "email": "diego.sal.gzz@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Ns147\\SodiumAuth\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ns147\\SodiumAuth\\Providers\\SodiumAuthServiceProvider"
+            ]
+        }
+    }
+}
