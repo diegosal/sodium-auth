@@ -23,7 +23,6 @@ class SodiumAuthServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        include __DIR__.'/routes/web.php';
         $this->app->make('Ns147\SodiumAuth\Controllers\SodiumAuthController');
     }
 }

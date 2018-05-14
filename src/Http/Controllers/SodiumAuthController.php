@@ -10,7 +10,7 @@ class SodiumAuthController extends Controller
 
     public function index($timezone)
     {
-        echo Carbon::now($timezone)->toDateTimeString();
+        // echo Carbon::now($timezone)->toDateTimeString();
     }
 
 }
