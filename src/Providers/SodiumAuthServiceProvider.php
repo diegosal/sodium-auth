@@ -4,7 +4,7 @@ namespace Ns147\SodiumAuth\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
-class SodiumAuthServiceProvider extends ServiceProvider
+class SodiumAuthServiceProvider extends AbstractServiceProvider
 {
     /**
      * Bootstrap services.
@@ -13,7 +13,14 @@ class SodiumAuthServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        $path = realpath(__DIR__.'/../../config/config.php');
+
+        $this->publishes([$path => config_path('sodium.php')], 'config');
+        $this->mergeConfigFrom($path, 'sodium');
+
+        // $this->aliasMiddleware();
+
+        // $this->extendAuthGuard();
     }
 
     /**
@@ -23,6 +30,5 @@ class SodiumAuthServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->make('Ns147\SodiumAuth\Controllers\SodiumAuthController');
     }
 }

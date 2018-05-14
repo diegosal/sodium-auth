@@ -15,6 +15,8 @@ return [
 
     'private_secret' => env('SODIUM_SECRET_KEY'),
 
+    'private_secret' => env('SODIUM_AUTH_KEY'),
+
     'private_key' => env('SODIUM_PRIVATE_KEY'),
 
     'public_key' => env('SODIUM_PUBLIC_KEY'),
