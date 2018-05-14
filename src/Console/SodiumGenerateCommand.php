@@ -58,11 +58,16 @@ class SodiumSecretCommand extends Command
             new HiddenString($enc_public_key)
         );
 
+        $enc_secret = $enc_secret->getRawKeyMaterial();
+        $auth_secret = $auth_secret->getRawKeyMaterial();
+        $enc_private_secret = $enc_private_secret->getRawKeyMaterial();
+        $enc_public_secret = $enc_public_secret->getRawKeyMaterial();
+
         if ($this->option('show')) {
-            $this->comment($enc_secret->getRawKeyMaterial());
-            $this->comment($auth_secret->getRawKeyMaterial());
-            $this->comment($enc_private_secret->getRawKeyMaterial());
-            $this->comment($enc_public_secret->getRawKeyMaterial());
+            $this->comment($enc_secret);
+            $this->comment($auth_secret);
+            $this->comment($enc_private_secret);
+            $this->comment($enc_public_secret);
             return;
         }
 
@@ -75,10 +80,10 @@ class SodiumSecretCommand extends Command
             Str::contains(file_get_contents($path), 'SODIUM_PRIVATE_KEY') === false &&
             Str::contains(file_get_contents($path), 'SODIUM_PUBLIC_KEY') === false) {
             // update existing entry
-            file_put_contents($path, PHP_EOL."SODIUM_SECRET_KEY=$enc_secret->getRawKeyMaterial()", FILE_APPEND);
-            file_put_contents($path, PHP_EOL."SODIUM_AUTH_KEY=$auth_secret->getRawKeyMaterial()", FILE_APPEND);
-            file_put_contents($path, PHP_EOL."SODIUM_PRIVATE_KEY=$enc_private_secret->getRawKeyMaterial()", FILE_APPEND);
-            file_put_contents($path, PHP_EOL."SODIUM_PUBLIC_KEY=$enc_public_secret->getRawKeyMaterial()", FILE_APPEND);
+            file_put_contents($path, PHP_EOL."SODIUM_SECRET_KEY=$enc_secret", FILE_APPEND);
+            file_put_contents($path, PHP_EOL."SODIUM_AUTH_KEY=$auth_secret", FILE_APPEND);
+            file_put_contents($path, PHP_EOL."SODIUM_PRIVATE_KEY=$enc_private_secret", FILE_APPEND);
+            file_put_contents($path, PHP_EOL."SODIUM_PUBLIC_KEY=$enc_public_secret", FILE_APPEND);
         } else {
             if ($this->isConfirmed() === false) {
                 $this->comment('Phew... No changes were made to your secret key.');
@@ -88,24 +93,30 @@ class SodiumSecretCommand extends Command
             // create new entry
             file_put_contents($path, str_replace(
                 'SODIUM_SECRET_KEY='.$this->laravel['config']['sodium.secret.key'],
-                'SODIUM_SECRET_KEY='.$enc_secret->getRawKeyMaterial(), file_get_contents($path),
-
+                'SODIUM_SECRET_KEY='.$enc_secret, file_get_contents($path)
+            ));
+            // create new entry
+            file_put_contents($path, str_replace(
                 'SODIUM_AUTH_KEY='.$this->laravel['config']['sodium.auth.key'],
-                'SODIUM_AUTH_KEY='.$auth_secret->getRawKeyMaterial(), file_get_contents($path),
-
+                'SODIUM_AUTH_KEY='.$auth_secret, file_get_contents($path)
+            ));
+            // create new entry
+            file_put_contents($path, str_replace(
                 'SODIUM_PRIVATE_KEY='.$this->laravel['config']['sodium.private.key'],
-                'SODIUM_PRIVATE_KEY='.$enc_private_secret->getRawKeyMaterial(), file_get_contents($path),
-
+                'SODIUM_PRIVATE_KEY='.$enc_private_secret, file_get_contents($path)
+            ));
+            // create new entry
+            file_put_contents($path, str_replace(
                 'SODIUM_PUBLIC_KEY='.$this->laravel['config']['sodium.public.key'],
-                'SODIUM_PUBLIC_KEY='.$enc_public_secret->getRawKeyMaterial(), file_get_contents($path)
+                'SODIUM_PUBLIC_KEY='.$enc_public_secret, file_get_contents($path)
             ));
         }
 
         $this->displayKey(
-            $enc_secret->getRawKeyMaterial(),
-            $auth_secret->getRawKeyMaterial(),
-            $enc_private_secret->getRawKeyMaterial(),
-            $enc_public_secret->getRawKeyMaterial()
+            $enc_secret,
+            $auth_secret,
+            $enc_private_secret,
+            $enc_public_secret
         );
     }
 
