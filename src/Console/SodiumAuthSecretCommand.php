@@ -34,6 +34,8 @@ class SodiumAuthSecretCommand extends Command
     {
         if ($this->input->hasOption('path') && $this->option('path')) {
 
+            
+
             $basePath = $this->option('path');
 
             $secret = new HiddenString(random_bytes(32));
