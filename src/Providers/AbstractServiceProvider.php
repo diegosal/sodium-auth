@@ -23,7 +23,7 @@ abstract class AbstractServiceProvider extends ServiceProvider
     {
         $this->registerSodiumCommand();
 
-        $this->commands('sodium.secret');
+        $this->commands('ns147.sodium.secret');
     }
 
     /**
@@ -33,7 +33,7 @@ abstract class AbstractServiceProvider extends ServiceProvider
      */
     protected function registerSodiumCommand()
     {
-        $this->app->singleton('sodium.secret', function () {
+        $this->app->singleton('ns147.sodium.secret', function () {
             return new SodiumSecretCommand;
         });
     }

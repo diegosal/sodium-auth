@@ -3,14 +3,17 @@
 namespace Ns147\SodiumAuth\Controllers;
 
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Redis;
 
-class SodiumAuthController extends Controller
+class SodiumAuthController  extends Controller
 {
 
-    public function index($timezone)
+    public function index()
     {
-        // echo Carbon::now($timezone)->toDateTimeString();
+        $redis = Redis::connection();
+        $redis->set('hola', 'diego');
+        $nombre = $redis->get('hola');
+        return $nombre;
     }
 
 }

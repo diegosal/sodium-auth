@@ -3,9 +3,10 @@
 namespace Ns147\SodiumAuth\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use  Ns147\SodiumAuth\Console\SodiumSecretCommand;
+use Ns147\SodiumAuth\Console\SodiumAuthSecretCommand;
+use Ns147\SodiumAuth\Controller\SodiumAuthController;
 
-class SodiumAuthServiceProvider extends ServiceProvider
+class SodiumAuthServiceProvider extends AbstractServiceProvider
 {
     /**
      * Bootstrap services.
@@ -32,8 +33,21 @@ class SodiumAuthServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerSodiumCommand();
+        $this->commands('ns147.sodium.secret');
+        $this->registerController();
 
-        $this->commands('sodium.secret');
+    }
+
+     /**
+     * Register the Artisan command.
+     *
+     * @return void
+     */
+    protected function registerController()
+    {
+        $this->app->singleton('', function () {
+            return new SodiumAuthController;
+        });
     }
 
     /**
@@ -43,8 +57,8 @@ class SodiumAuthServiceProvider extends ServiceProvider
      */
     protected function registerSodiumCommand()
     {
-        $this->app->singleton('sodium.secret', function () {
-            return new SodiumSecretCommand;
+        $this->app->singleton('ns147.sodium.secret', function () {
+            return new SodiumAuthSecretCommand;
         });
     }
 }

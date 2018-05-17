@@ -20,21 +20,19 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": "^5.5.9  ||  ^7.0 || ^7.2",
-        "illuminate/auth": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.*",
-        "illuminate/contracts": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.*",
-        "illuminate/http": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.*",
-        "illuminate/support": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.*",
-        "paragonie/halite": "^4",
-        "paragonie/paseto": "^1.0.1"
+        "php": "^7.2",
+        "illuminate/auth": "^5.6.*",
+        "illuminate/contracts": "^5.6.*",
+        "illuminate/http": "^5.6.*",
+        "illuminate/support": "^5.6.*"
     },
     "require-dev": {
         "cartalyst/sentinel": "2.0.*",
-        "illuminate/console": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.*",
-        "illuminate/database": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.*",
-        "illuminate/routing": "5.1.* || 5.2.* || 5.3.* || 5.4.* || 5.5.* || 5.6.*",
+        "illuminate/console": "^5.6.*",
+        "illuminate/database": "^5.6.*",
+        "illuminate/routing": "^5.6.*",
         "mockery/mockery": ">=1.1.0",
-        "phpunit/phpunit": "~4.8 || ~6.0"
+        "phpunit/phpunit": "~6.0"
     },
     "autoload": {
         "psr-4": {
