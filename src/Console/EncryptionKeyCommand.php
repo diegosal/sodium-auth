@@ -7,14 +7,14 @@ use ParagonIE\Halite\KeyFactory;
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 
-class SodiumAuthSecretCommand extends Command
+class EncryptionKeyCommand extends Command
 {
     /**
      * The console command signature.
      *
      * @var string
      */
-    protected $signature = 'sodium:make
+    protected $signature = 'sodium:encryptionkey
         {--path= : The path to save key outside webroot.}
         {--f|force : Skip confirmation when overwriting an existing key.}';
 
@@ -33,8 +33,6 @@ class SodiumAuthSecretCommand extends Command
     public function handle()
     {
         if ($this->input->hasOption('path') && $this->option('path')) {
-
-            
 
             $basePath = $this->option('path');
 

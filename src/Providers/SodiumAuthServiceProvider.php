@@ -3,7 +3,7 @@
 namespace Ns147\SodiumAuth\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Ns147\SodiumAuth\Console\SodiumAuthSecretCommand;
+use Ns147\SodiumAuth\Console\InstallCommand;
 use Ns147\SodiumAuth\Controller\SodiumAuthController;
 
 class SodiumAuthServiceProvider extends AbstractServiceProvider
@@ -33,7 +33,7 @@ class SodiumAuthServiceProvider extends AbstractServiceProvider
     public function register()
     {
         $this->registerSodiumCommand();
-        $this->commands('ns147.sodium.secret');
+        $this->commands('ns147.sodium.install');
         $this->registerController();
 
     }
@@ -57,8 +57,8 @@ class SodiumAuthServiceProvider extends AbstractServiceProvider
      */
     protected function registerSodiumCommand()
     {
-        $this->app->singleton('ns147.sodium.secret', function () {
-            return new SodiumAuthSecretCommand;
+        $this->app->singleton('ns147.sodium.install', function () {
+            return new InstallCommand;
         });
     }
 }

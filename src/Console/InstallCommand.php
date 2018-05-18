@@ -1,0 +1,40 @@
+<?php
+
+namespace Ns147\SodiumAuth\Console;
+
+use ParagonIE\Halite\HiddenString;
+use ParagonIE\Halite\KeyFactory;
+use Illuminate\Support\Str;
+use Illuminate\Console\Command;
+
+class InstallCommand extends Command
+{
+    /**
+     * The console command signature.
+     *
+     * @var string
+     */
+    protected $signature = 'sodium:install
+        {--path= : The path to save key outside webroot.}
+        {--f|force : Skip confirmation when overwriting an existing key.}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Set the SodiumAuth secret key files used to make hash';
+
+    /**
+     * Execute the console command.
+     *
+     * @return void
+     */
+    public function handle()
+    {
+        if ($this->input->hasOption('path') && $this->option('path')) {
+            $this->call('sodium:encryptionkey', ['--path' => $this->option('path')]);
+            $this->call('sodium:oauthkey', ['--path' => $this->option('path')]);
+        }
+    }
+}
