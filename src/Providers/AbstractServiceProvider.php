@@ -2,8 +2,23 @@
 
 namespace Ns147\SodiumAuth\Providers;
 
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Foundation\Application as LaravelApplication;
 use Illuminate\Support\ServiceProvider;
-use  Ns147\SodiumAuth\Console\SodiumSecretCommand;
+use ParagonIE\ConstantTime\Base64UrlSafe;
+use ParagonIE\Sapient\CryptographyKeys\SealingPublicKey;
+use ParagonIE\Sapient\CryptographyKeys\SealingSecretKey;
+use ParagonIE\Sapient\CryptographyKeys\SharedAuthenticationKey;
+use ParagonIE\Sapient\CryptographyKeys\SharedEncryptionKey;
+use ParagonIE\Sapient\CryptographyKeys\SigningPublicKey;
+use ParagonIE\Sapient\CryptographyKeys\SigningSecretKey;
+use Ns147\SodiumAuth\Console\InstallCommand;
+use Ns147\SodiumAuth\Console\EncryptionKeyCommand;
+use Ns147\SodiumAuth\Console\GenerateSealingKeyPair;
+use Ns147\SodiumAuth\Console\GenerateSharedAuthenticationKey;
+use Ns147\SodiumAuth\Console\GenerateSharedEncryptionKey;
+use Ns147\SodiumAuth\Console\GenerateSigningKeyPair;
+use Ns147\SodiumAuth\Controller\SodiumAuthController;
 
 abstract class AbstractServiceProvider extends ServiceProvider
 {
@@ -22,19 +37,72 @@ abstract class AbstractServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerSodiumCommand();
+        $this->commands(
+            'ns147.sodium.install',
+            'ns147.sodium.encryption.key',
+            'ns147.sodium.seal.pair.key',
+            'ns147.sodium.shared.authentication.key',
+            'ns147.sodium.shared.encryption.key',
+            'ns147.sodium.signing.key.pair'
+        );
+        $this->registerController();
+        $this-> registerKey();
+    }
+    private function registerController()
+    {
+        $this->app->singleton('', function () {
+            return new SodiumAuthController;
+        });
+    }
 
-        $this->commands('ns147.sodium.secret');
+    private function registerSodiumCommand()
+    {
+        $this->app->singleton('ns147.sodium.install', function () {
+            return new InstallCommand;
+        });
+        $this->app->singleton('ns147.sodium.encryption.key', function () {
+            return new EncryptionKeyCommand;
+        });
+        $this->app->singleton('ns147.sodium.seal.pair.key', function () {
+            return new GenerateSealingKeyPair;
+        });
+        $this->app->singleton('ns147.sodium.shared.authentication.key', function () {
+            return new GenerateSharedAuthenticationKey;
+        });
+        $this->app->singleton('ns147.sodium.shared.encryption.key', function () {
+            return new GenerateSharedEncryptionKey;
+        });
+        $this->app->singleton('ns147.sodium.signing.key.pair', function () {
+            return new GenerateSigningKeyPair;
+        });
+    }
+
+    private function registerKey()
+    {
+        $this->bindKey(SealingPublicKey::class, 'sapient.sealing.public_key')
+            ->bindKey(SealingSecretKey::class, 'sapient.sealing.private_key')
+            ->bindKey(SharedAuthenticationKey::class, 'sapient.shared.authentication_key')
+            ->bindKey(SharedEncryptionKey::class, 'sapient.shared.encryption_key')
+            ->bindKey(SigningPublicKey::class, 'sapient.signing.public_key')
+            ->bindKey(SigningSecretKey::class, 'sapient.signing.private_key');
     }
 
     /**
-     * Register the Artisan command.
-     *
-     * @return void
+     * @param string $concrete
+     * @param string $configKey
+     * @return SapientServiceProvider
      */
-    protected function registerSodiumCommand()
+    private function bindKey(string $concrete, string $configKey): self
     {
-        $this->app->singleton('ns147.sodium.secret', function () {
-            return new SodiumSecretCommand;
-        });
+        /** @var Repository $config */
+        $config = $this->app->make('config')->get('sodium');
+        $this->app->when($concrete)
+            ->needs('$key')
+            ->give(function () use ($config, $configKey) {
+                return Base64UrlSafe::decode($config->get($configKey));
+            });
+        return $this;
     }
+
+
 }
