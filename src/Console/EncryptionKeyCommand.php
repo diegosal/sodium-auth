@@ -4,10 +4,9 @@ namespace Ns147\SodiumAuth\Console;
 
 use ParagonIE\Halite\HiddenString;
 use ParagonIE\Halite\KeyFactory;
-use Illuminate\Support\Str;
-use Illuminate\Console\Command;
+use Ns147\SodiumAuth\Console\GenerateCommand;
 
-class EncryptionKeyCommand extends Command
+final class EncryptionKeyCommand extends GenerateCommand
 {
     /**
      * The console command signature.
@@ -16,6 +15,7 @@ class EncryptionKeyCommand extends Command
      */
     protected $signature = 'sodium:encryptionkey
         {--path= : The path to save key outside webroot.}
+        {--show : Display the keys instead of modifying files}
         {--f|force : Skip confirmation when overwriting an existing key.}';
 
     /**
@@ -48,99 +48,28 @@ class EncryptionKeyCommand extends Command
             $ePath = $basePath.'/sodium-auth-e.key';
             KeyFactory::save($eKey, $ePath);
 
-            if (file_exists($path = $this->envPath()) === false) {
-                return $this->displayKey(
-                    $pPath,
-                    $ePath
-                );
+            if ($this->option('show')) {
+                $this->comment('<comment>Public Key: ' . $pPath . '</comment>');
+                $this->comment('<comment>Secret Key: ' . $ePath . '</comment>');
+                return;
             }
-
-            if (Str::contains(file_get_contents($pPath), 'SODIUM_AUTH_P_PATH') === false &&
-                Str::contains(file_get_contents($ePath), 'SODIUM_AUTH_E_PATH') === false) {
-                file_put_contents(
-                    $path,
-                    PHP_EOL."SODIUM_AUTH_P_PATH=$pPath",
-                    FILE_APPEND
-                );
-                file_put_contents(
-                    $path,
-                    PHP_EOL."SODIUM_AUTH_E_PATH=$ePath",
-                    FILE_APPEND
-                );
+            $option = '';
+            if ($this->input->hasOption('force') && $this->option('force'))
+                $option = 'force';
+            else
+                $option = '';
+            if (
+                $this->confirmOverwrite('key_path', 'p_path', $option) &&
+                $this->confirmOverwrite('key_path', 'e_path', $option)
+            ) {
+                $this->writeConfigurationValue('SODIUM_AUTH_P_PATH', $pPath);
+                $this->writeConfigurationValue('SODIUM_AUTH_E_PATH', $ePath);
+                $this->info("keys file create successfully.");
             } else {
-                if ($this->isConfirmed() === false) {
-                    $this->comment('Phew... No changes were made to your secret key.');
-                    return;
-                }
-
-                // create new entry
-                file_put_contents(
-                    $path,
-                    str_replace(
-                        'SODIUM_AUTH_P_PATH='.$this->laravel['config']['sodium.p_path'],
-                        'SODIUM_AUTH_P_PATH='.$pPath,
-                        file_get_contents($pPath)
-                    )
-                );
-                file_put_contents(
-                    $path,
-                    str_replace(
-                        'SODIUM_AUTH_E_PATH='.$this->laravel['config']['sodium.p_path'],
-                        'SODIUM_AUTH_E_PATH='.$ePath,
-                        file_get_contents($ePath)
-                    )
-                );
+                $this->comment('Phew... No changes were made to the key.');
             }
-
-            $this->displayKey(
-                $pPath,
-                $ePath
-            );
+        } else {
+            $this->comment('Enter the path for the files.');
         }
-    }
-
-    /**
-     * Display the key.
-     *
-     * @param  string  $key
-     *
-     * @return void
-     */
-    protected function displayKey(
-        $pPath,
-        $ePath
-    )
-    {
-        $this->laravel['config']['sodium.p_path'] = $pPath;
-        $this->laravel['config']['sodium.e_path'] = $ePath;
-
-        $this->info("sodium-auth secret [$pPath] set successfully.");
-        $this->info("sodium-auth auth [$ePath] set successfully.");
-    }
-
-    /**
-     * Check if the modification is confirmed.
-     *
-     * @return bool
-     */
-    protected function isConfirmed()
-    {
-        return $this->option('force') ? true : $this->confirm(
-            'This will invalidate all existing tokens. Are you sure you want to override the secret key?'
-        );
-    }
-
-    /**
-     * Get the .env file path.
-     *
-     * @return string
-     */
-    protected function envPath()
-    {
-        if (method_exists($this->laravel, 'environmentFilePath')) {
-            return $this->laravel->environmentFilePath();
-        }
-
-        return $this->laravel->basePath('.env');
     }
 }

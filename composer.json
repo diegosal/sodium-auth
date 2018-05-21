@@ -21,20 +21,22 @@
     "minimum-stability": "dev",
     "require": {
         "php": "^7.2",
-        "illuminate/auth": "5.6.*",
-        "illuminate/contracts": "5.6.*",
-        "illuminate/http": "5.6.*",
-        "illuminate/support": "5.6.*",
-        "paragonie/sapient": "1.*",
-        "paragonie/halite": "4.*"
+        "illuminate/console": "^5.6",
+        "illuminate/contracts": "^5.6",
+        "illuminate/http": "^5.6",
+        "illuminate/support": "^5.6",
+        "symfony/psr-http-message-bridge": "^1.0",
+        "zendframework/zend-diactoros": "^1.4",
+        "paragonie/sapient": "^1.0",
+        "paragonie/halite": "^4",
+        "paragonie/sodium_compat": "^1.0",
+        "paragonie/constant_time_encoding": "^2.0"
     },
     "require-dev": {
-        "cartalyst/sentinel": "2.0.*",
-        "illuminate/console": "5.6.*",
-        "illuminate/database": "5.6.*",
-        "illuminate/routing": "5.6.*",
+        "cartalyst/sentinel": "^2.0",
         "mockery/mockery": ">=1.1.0",
-        "phpunit/phpunit": "~6.0"
+        "laravel/framework": "^5.4",
+        "phpunit/phpunit": "^6.2"
     },
     "autoload": {
         "psr-4": {

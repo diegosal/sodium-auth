@@ -23,7 +23,7 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Set the SodiumAuth secret key files used to make hash';
+    protected $description = 'SodiumAuth install keys';
 
     /**
      * Execute the console command.
@@ -34,7 +34,10 @@ class InstallCommand extends Command
     {
         if ($this->input->hasOption('path') && $this->option('path')) {
             $this->call('sodium:encryptionkey', ['--path' => $this->option('path')]);
-            $this->call('sodium:oauthkey', ['--path' => $this->option('path')]);
         }
+        $this->call('sodium:generate:seal:pair', ['--force' => $this->option('force')]);
+        $this->call('sodium:generate:shared:authentication', ['--force' => $this->option('force')]);
+        $this->call('sodium:generate:shared:encryption', ['--force' => $this->option('force')]);
+        $this->call('sodium:generate:sign:pair', ['--force' => $this->option('force')]);
     }
 }
