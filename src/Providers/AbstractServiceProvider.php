@@ -79,12 +79,12 @@ abstract class AbstractServiceProvider extends ServiceProvider
 
     private function registerKey()
     {
-        $this->bindKey(SealingPublicKey::class, 'sapient.sealing.public_key')
-            ->bindKey(SealingSecretKey::class, 'sapient.sealing.private_key')
-            ->bindKey(SharedAuthenticationKey::class, 'sapient.shared.authentication_key')
-            ->bindKey(SharedEncryptionKey::class, 'sapient.shared.encryption_key')
-            ->bindKey(SigningPublicKey::class, 'sapient.signing.public_key')
-            ->bindKey(SigningSecretKey::class, 'sapient.signing.private_key');
+        $this->bindKey(SealingPublicKey::class, 'sealing', 'public_key')
+            ->bindKey(SealingSecretKey::class, 'sealing', 'private_key')
+            ->bindKey(SharedAuthenticationKey::class, 'shared', 'authentication_key')
+            ->bindKey(SharedEncryptionKey::class, 'shared', 'encryption_key')
+            ->bindKey(SigningPublicKey::class, 'signing', 'public_key')
+            ->bindKey(SigningSecretKey::class, 'signing', 'private_key');
     }
 
     /**
@@ -92,14 +92,14 @@ abstract class AbstractServiceProvider extends ServiceProvider
      * @param string $configKey
      * @return SapientServiceProvider
      */
-    private function bindKey(string $concrete, string $configKey): self
+    private function bindKey(string $concrete, string $part, string $key): self
     {
         /** @var Repository $config */
         $config = $this->app->make('config')->get('sodium');
         $this->app->when($concrete)
             ->needs('$key')
-            ->give(function () use ($config, $configKey) {
-                return Base64UrlSafe::decode($config->get($configKey));
+            ->give(function () use ($config, $part, $key) {
+                return Base64UrlSafe::decode($config[$part][$key]);
             });
         return $this;
     }

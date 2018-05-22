@@ -16,7 +16,7 @@ class EncryptionProvider extends ServiceProvider
     {
         $this->app->singleton('encrypter', function ($app) {
             $config = $app->make('config')->get('sodium');
-            $key = $config['e_path'];
+            $key = $config['key_path']['e_path'];
 
             return new SodiumAuthEncrypter($key);
         });

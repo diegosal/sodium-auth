@@ -4,14 +4,14 @@ namespace Ns147\SodiumAuth\Test\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Tests\TestCase;
 use Ns147\SodiumAuth\KeyResolver\StaticResolver;
 use Ns147\SodiumAuth\Middleware\SealResponse;
-use Ns147\SodiumAuth\Test\Middleware\TestCase;
 use ParagonIE\ConstantTime\Base64UrlSafe;
 use ParagonIE\Sapient\CryptographyKeys\SealingSecretKey;
 use ParagonIE\Sapient\Simple;
 
-final class SealResponseTest extends TestCase
+class SealResponseTest extends TestCase
 {
     public function testGoodKey()
     {

@@ -5,9 +5,9 @@ namespace Ns147\SodiumAuth\Test\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Ns147\SodiumAuth\Middleware\SharedAuthenticateResponse;
-use Ns147\SodiumAuth\Test\Middleware\TestCase;
 use ParagonIE\ConstantTime\Base64UrlSafe;
 use ParagonIE\Sapient\CryptographyKeys\SharedAuthenticationKey;
+use Tests\TestCase;
 
 final class SharedAuthenticateResponseTest extends TestCase
 {

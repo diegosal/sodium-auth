@@ -5,10 +5,10 @@ namespace Ns147\SodiumAuth\Test\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Ns147\SodiumAuth\Middleware\SharedVerifyRequest;
-use Ns147\SodiumAuth\Test\Middleware\TestCase;
 use ParagonIE\ConstantTime\Base64UrlSafe;
 use ParagonIE\Sapient\CryptographyKeys\SharedAuthenticationKey;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\TestCase;
 
 final class SharedVerifyRequestTest extends TestCase
 {

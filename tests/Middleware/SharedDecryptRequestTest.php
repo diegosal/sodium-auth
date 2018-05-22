@@ -6,9 +6,9 @@ use Error;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Ns147\SodiumAuth\Middleware\SharedDecryptRequest;
-use Ns147\SodiumAuth\Test\Middleware\TestCase;
 use ParagonIE\Sapient\CryptographyKeys\SharedEncryptionKey;
 use ParagonIE\Sapient\Simple;
+use Tests\TestCase;
 
 final class SharedDecryptRequestTest extends TestCase
 {

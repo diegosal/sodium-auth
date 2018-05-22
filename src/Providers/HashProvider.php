@@ -23,7 +23,7 @@ class HashProvider extends ServiceProvider
     {
         $this->app->singleton('hash', function ($app) {
             $config = $app->make('config')->get('sodium');
-            $key = $config['p_path'];
+            $key = $config['key_path']['p_path'];
 
             return new SodiumAuthHasher($key);
         });

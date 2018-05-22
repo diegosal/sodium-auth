@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Ns147\SodiumAuth\KeyResolver\StaticResolver;
 use Ns147\SodiumAuth\Middleware\VerifyRequest;
-use Ns147\SodiumAuth\Test\Middleware\TestCase;
 use ParagonIE\ConstantTime\Base64UrlSafe;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\TestCase;
 
 final class VerifyRequestTest extends TestCase
 {

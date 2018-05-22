@@ -2,15 +2,15 @@
 
 namespace Ns147\SodiumAuth\Test\KeyResolver;
 
-use Ns147\SodiumAuth\Test\KeyResolver\TestCase;
+use Tests\TestCase;
+use Ns147\SodiumAuth\KeyResolver\StaticResolver;
 
-final class StaticResolverTest extends TestCase
+class StaticResolverTest extends TestCase
 {
     public function testResolveKey()
     {
         $key = 'foo';
         $resolver = new StaticResolver($key);
-
         static::assertEquals($key, $resolver->resolveKey());
     }
 }

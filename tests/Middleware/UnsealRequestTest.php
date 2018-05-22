@@ -6,10 +6,10 @@ use Error;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Ns147\SodiumAuth\Middleware\UnsealRequest;
-use Ns147\SodiumAuth\Test\Middleware\TestCase;
 use ParagonIE\Sapient\CryptographyKeys\SealingPublicKey;
 use ParagonIE\Sapient\CryptographyKeys\SealingSecretKey;
 use ParagonIE\Sapient\Simple;
+use Tests\TestCase;
 
 final class UnsealRequestTest extends TestCase
 {

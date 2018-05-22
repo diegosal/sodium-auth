@@ -36,7 +36,7 @@ final class SharedAuthenticateResponse
             Sapient::HEADER_AUTH_NAME,
             Base64UrlSafe::encode(sodium_crypto_auth($response->getContent(), $this->key->getString(true)))
         );
-
+        var_dump($response);
         return $response;
     }
 }
