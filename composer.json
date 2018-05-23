@@ -21,16 +21,7 @@
     "minimum-stability": "dev",
     "require": {
         "php": "^7.2",
-        "illuminate/console": "^5.6",
-        "illuminate/contracts": "^5.6",
-        "illuminate/http": "^5.6",
-        "illuminate/support": "^5.6",
-        "symfony/psr-http-message-bridge": "^1.0",
-        "zendframework/zend-diactoros": "^1.4",
-        "paragonie/sapient": "^1.0",
-        "paragonie/halite": "^4",
-        "paragonie/sodium_compat": "^1.0",
-        "paragonie/constant_time_encoding": "^2.0"
+        "paragonie/paseto": "^1.0.1"
     },
     "require-dev": {
         "filp/whoops": "^2.0",
