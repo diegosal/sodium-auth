@@ -30,7 +30,8 @@
         "paragonie/sapient": "^1.0",
         "paragonie/halite": "^4",
         "paragonie/sodium_compat": "^1.0",
-        "paragonie/constant_time_encoding": "^2.0"
+        "paragonie/constant_time_encoding": "^2.0",
+        "paragonie/paseto": "^1.0.1"
     },
     "require-dev": {
         "filp/whoops": "^2.0",
