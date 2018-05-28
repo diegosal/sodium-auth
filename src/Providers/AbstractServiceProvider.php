@@ -67,7 +67,7 @@ abstract class AbstractServiceProvider extends ServiceProvider
         $this->registerTokenProvider();
         $this->registerAuthProvider();
         $this->registerStorageProvider();
-        $this->registerSodiumBlacklist();
+        $this->registerTokenBlacklist();
 
         $this->registerManager();
         $this->registerTokenParser();
