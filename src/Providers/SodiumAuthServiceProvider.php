@@ -1,15 +1,11 @@
 <?php
 
-namespace Ns147\SodiumAuth\Providers;
-
-use Ns147\SodiumAuth\Providers\AbstractServiceProvider;
+namespace  Ns147\SodiumAuth\Providers;
 
 class SodiumAuthServiceProvider extends AbstractServiceProvider
 {
     /**
-     * Bootstrap services.
-     *
-     * @return void
+     * {@inheritdoc}
      */
     public function boot()
     {
@@ -18,8 +14,24 @@ class SodiumAuthServiceProvider extends AbstractServiceProvider
         $this->publishes([$path => config_path('sodium.php')], 'config');
         $this->mergeConfigFrom($path, 'sodium');
 
-        // $this->aliasMiddleware();
+        $this->aliasMiddleware();
 
-        // $this->extendAuthGuard();
+        $this->extendAuthGuard();
+    }
+
+    /**
+     * Alias the middleware.
+     *
+     * @return void
+     */
+    protected function aliasMiddleware()
+    {
+        $router = $this->app['router'];
+
+        $method = method_exists($router, 'aliasMiddleware') ? 'aliasMiddleware' : 'middleware';
+
+        foreach ($this->middlewareAliases as $alias => $middleware) {
+            $router->$method($alias, $middleware);
+        }
     }
 }

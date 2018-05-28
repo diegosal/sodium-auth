@@ -2,312 +2,408 @@
 
 namespace Ns147\SodiumAuth;
 
-use Mockery;
-use DateInterval;
-use Carbon\Carbon;
-use DateTimeInterface;
-use Illuminate\Support\Facades\Route;
+use BadMethodCallException;
+use Illuminate\Http\Request;
+use Ns147\SodiumAuth\Http\Parser\Parser;
+use Ns147\SodiumAuth\Contracts\SodiumAuthSubject;
 
 class SodiumAuth
 {
-    /**
-     * Indicates if the implicit grant type is enabled.
-     *
-     * @var bool|null
-     */
-    public static $implicitGrantEnabled = false;
 
     /**
-     * Indicates if sodium-auth should revoke existing tokens when issuing a new one.
+     * The authentication manager.
+     *
+     * @var \Ns147\SodiumAuth\Manager
+     */
+    protected $manager;
+
+    /**
+     * The HTTP parser.
+     *
+     * @var \Ns147\SodiumAuth\Http\Parser\Parser
+     */
+    protected $parser;
+
+    /**
+     * The token.
+     *
+     * @var \Ns147\SodiumAuth\Token|null
+     */
+    protected $token;
+
+    /**
+     * Lock the subject.
      *
      * @var bool
      */
-    public static $revokeOtherTokens = false;
+    protected $lockSubject = true;
 
     /**
-     * Indicates if sodium-auth should prune revoked tokens.
+     * JWT constructor.
      *
-     * @var bool
-     */
-    public static $pruneRevokedTokens = false;
-
-    /**
-     * The personal access token client ID.
+     * @param  \Ns147\SodiumAuth\Manager  $manager
+     * @param  \Ns147\SodiumAuth\Http\Parser\Parser  $parser
      *
-     * @var int
-     */
-    public static $personalAccessClient;
-
-    /**
-     * All of the scopes defined for the application.
-     *
-     * @var array
-     */
-    public static $scopes = [
-        //
-    ];
-
-    /**
-     * The date when access tokens expire.
-     *
-     * @var \DateTimeInterface|null
-     */
-    public static $tokensExpireAt;
-
-    /**
-     * The date when refresh tokens expire.
-     *
-     * @var \DateTimeInterface|null
-     */
-    public static $refreshTokensExpireAt;
-
-    /**
-     * The name for API token cookies.
-     *
-     * @var string
-     */
-    public static $cookie = 'sodium_auth_token';
-
-    /**
-     * The storage location of the encryption keys.
-     *
-     * @var string
-     */
-    public static $keyPath;
-
-    /**
-     * Indicates if sodium-auth migrations will be run.
-     *
-     * @var bool
-     */
-    public static $runsMigrations = true;
-
-    /**
-     * Enable the implicit grant type.
-     *
-     * @return static
-     */
-    public static function enableImplicitGrant()
-    {
-        static::$implicitGrantEnabled = true;
-
-        return new static;
-    }
-
-    /**
-     * Binds the sodium-auth routes into the controller.
-     *
-     * @param  callable|null  $callback
-     * @param  array  $options
      * @return void
      */
-    public static function routes($callback = null, array $options = [])
+    public function __construct(Manager $manager, Parser $parser)
     {
-        $callback = $callback ?: function ($router) {
-            $router->all();
-        };
-
-        $defaultOptions = [
-            'prefix' => 'oauth',
-            'namespace' => '\Ns147\SodiumAuth\Http\Controllers',
-        ];
-
-        $options = array_merge($defaultOptions, $options);
-
-        Route::group($options, function ($router) use ($callback) {
-            $callback(new RouteRegistrar($router));
-        });
+        $this->manager = $manager;
+        $this->parser = $parser;
     }
 
     /**
-     * Set the client ID that should be used to issue personal access tokens.
+     * Generate a token for a given subject.
      *
-     * @param  int  $clientId
-     * @return static
-     */
-    public static function personalAccessClient($clientId)
-    {
-        static::$personalAccessClient = $clientId;
-
-        return new static;
-    }
-
-    /**
-     * Get all of the defined scope IDs.
+     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $subject
      *
-     * @return array
-     */
-    public static function scopeIds()
-    {
-        return static::scopes()->pluck('id')->values()->all();
-    }
-
-    /**
-     * Determine if the given scope has been defined.
-     *
-     * @param  string  $id
-     * @return bool
-     */
-    public static function hasScope($id)
-    {
-        return $id === '*' || array_key_exists($id, static::$scopes);
-    }
-
-    /**
-     * Get all of the scopes defined for the application.
-     *
-     * @return \Illuminate\Support\Collection
-     */
-    public static function scopes()
-    {
-        return collect(static::$scopes)->map(function ($description, $id) {
-            return new Scope($id, $description);
-        })->values();
-    }
-
-    /**
-     * Get all of the scopes matching the given IDs.
-     *
-     * @param  array  $ids
-     * @return array
-     */
-    public static function scopesFor(array $ids)
-    {
-        return collect($ids)->map(function ($id) {
-            if (isset(static::$scopes[$id])) {
-                return new Scope($id, static::$scopes[$id]);
-            }
-
-            return;
-        })->filter()->values()->all();
-    }
-
-    /**
-     * Define the scopes for the application.
-     *
-     * @param  array  $scopes
-     * @return void
-     */
-    public static function tokensCan(array $scopes)
-    {
-        static::$scopes = $scopes;
-    }
-
-    /**
-     * Get or set when access tokens expire.
-     *
-     * @param  \DateTimeInterface|null  $date
-     * @return \DateInterval|static
-     */
-    public static function tokensExpireIn(DateTimeInterface $date = null)
-    {
-        if (is_null($date)) {
-            return static::$tokensExpireAt
-                            ? Carbon::now()->diff(static::$tokensExpireAt)
-                            : new DateInterval('P1Y');
-        }
-
-        static::$tokensExpireAt = $date;
-
-        return new static;
-    }
-
-    /**
-     * Get or set when refresh tokens expire.
-     *
-     * @param  \DateTimeInterface|null  $date
-     * @return \DateInterval|static
-     */
-    public static function refreshTokensExpireIn(DateTimeInterface $date = null)
-    {
-        if (is_null($date)) {
-            return static::$refreshTokensExpireAt
-                            ? Carbon::now()->diff(static::$refreshTokensExpireAt)
-                            : new DateInterval('P1Y');
-        }
-
-        static::$refreshTokensExpireAt = $date;
-
-        return new static;
-    }
-
-    /**
-     * Get or set the name for API token cookies.
-     *
-     * @param  string|null  $cookie
-     * @return string|static
-     */
-    public static function cookie($cookie = null)
-    {
-        if (is_null($cookie)) {
-            return static::$cookie;
-        }
-
-        static::$cookie = $cookie;
-
-        return new static;
-    }
-
-    /**
-     * Set the current user for the application with the given scopes.
-     *
-     * @param  \Illuminate\Contracts\Auth\Authenticatable  $user
-     * @param  array  $scopes
-     * @param  string  $guard
-     * @return \Illuminate\Contracts\Auth\Authenticatable
-     */
-    public static function actingAs($user, $scopes = [], $guard = 'api')
-    {
-        $token = Mockery::mock(Token::class)->shouldIgnoreMissing(false);
-
-        foreach ($scopes as $scope) {
-            $token->shouldReceive('can')->with($scope)->andReturn(true);
-        }
-
-        $user->withAccessToken($token);
-
-        app('auth')->guard($guard)->setUser($user);
-
-        app('auth')->shouldUse($guard);
-
-        return $user;
-    }
-
-    /**
-     * Set the storage location of the encryption keys.
-     *
-     * @param  string  $path
-     * @return void
-     */
-    public static function loadKeysFrom($path)
-    {
-        static::$keyPath = $path;
-    }
-
-    /**
-     * The location of the encryption keys.
-     *
-     * @param  string  $file
      * @return string
      */
-    public static function keyPath($file)
+    public function fromSubject(SodiumAuthSubject $subject)
     {
-        $file = ltrim($file, '/\\');
+        $payload = $this->makePayload($subject);
 
-        return static::$keyPath
-            ? rtrim(static::$keyPath, '/\\').DIRECTORY_SEPARATOR.$file
-            : storage_path($file);
+        return $this->manager->encode($payload)->get();
     }
 
     /**
-     * Configure Passport to not register its migrations.
+     * Alias to generate a token for a given user.
      *
-     * @return static
+     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $user
+     *
+     * @return string
      */
-    public static function ignoreMigrations()
+    public function fromUser(SodiumAuthSubject $user)
     {
-        static::$runsMigrations = false;
+        return $this->fromSubject($user);
+    }
 
-        return new static;
+    /**
+     * Refresh an expired token.
+     *
+     * @param  bool  $forceForever
+     * @param  bool  $resetClaims
+     *
+     * @return string
+     */
+    public function refresh($forceForever = false, $resetClaims = false)
+    {
+        $this->requireToken();
+
+        return $this->manager->customClaims($this->getCustomClaims())
+                             ->refresh($this->token, $forceForever, $resetClaims)
+                             ->get();
+    }
+
+    /**
+     * Invalidate a token (add it to the blacklist).
+     *
+     * @param  bool  $forceForever
+     *
+     * @return $this
+     */
+    public function invalidate($forceForever = false)
+    {
+        $this->requireToken();
+
+        $this->manager->invalidate($this->token, $forceForever);
+
+        return $this;
+    }
+
+    /**
+     * Alias to get the payload, and as a result checks that
+     * the token is valid i.e. not expired or blacklisted.
+     *
+     * @throws Exception
+     *
+     * @return \Ns147\SodiumAuth\Payload
+     */
+    public function checkOrFail()
+    {
+        return $this->getPayload();
+    }
+
+    /**
+     * Check that the token is valid.
+     *
+     * @param  bool  $getPayload
+     *
+     * @return \Ns147\SodiumAuth\Payload|bool
+     */
+    public function check($getPayload = false)
+    {
+        try {
+            $payload = $this->checkOrFail();
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return $getPayload ? $payload : true;
+    }
+
+    /**
+     * Get the token.
+     *
+     * @return \Ns147\SodiumAuth\Token|null
+     */
+    public function getToken()
+    {
+        if ($this->token === null) {
+            try {
+                $this->parseToken();
+            } catch (Exception $e) {
+                $this->token = null;
+            }
+        }
+
+        return $this->token;
+    }
+
+    /**
+     * Parse the token from the request.
+     *
+     * @throws Exception
+     *
+     * @return $this
+     */
+    public function parseToken()
+    {
+        if (! $token = $this->parser->parseToken()) {
+            throw new Exception('The token could not be parsed from the request');
+        }
+
+        return $this->setToken($token);
+    }
+
+    /**
+     * Get the raw Payload instance.
+     *
+     * @return \Ns147\SodiumAuth\Payload
+     */
+    public function getPayload()
+    {
+        $this->requireToken();
+
+        return $this->manager->decode($this->token);
+    }
+
+    /**
+     * Alias for getPayload().
+     *
+     * @return \Ns147\SodiumAuth\Payload
+     */
+    public function payload()
+    {
+        return $this->getPayload();
+    }
+
+    /**
+     * Convenience method to get a claim value.
+     *
+     * @param  string  $claim
+     *
+     * @return mixed
+     */
+    public function getClaim($claim)
+    {
+        return $this->payload()->get($claim);
+    }
+
+    /**
+     * Create a Payload instance.
+     *
+     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $subject
+     *
+     * @return \Ns147\SodiumAuth\Payload
+     */
+    public function makePayload(SodiumAuthSubject $subject)
+    {
+        return $this->factory()->customClaims($this->getClaimsArray($subject))->make();
+    }
+
+    /**
+     * Build the claims array and return it.
+     *
+     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $subject
+     *
+     * @return array
+     */
+    protected function getClaimsArray(SodiumAuthSubject $subject)
+    {
+        return array_merge(
+            $this->getClaimsForSubject($subject),
+            $subject->getTokenCustomClaims(),
+            $this->customClaims
+        );
+    }
+
+    /**
+     * Get the claims associated with a given subject.
+     *
+     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $subject
+     *
+     * @return array
+     */
+    protected function getClaimsForSubject(SodiumAuthSubject $subject)
+    {
+        return array_merge([
+            'sub' => $subject->getTokenIdentifier(),
+        ], $this->lockSubject ? ['prv' => $this->hashSubjectModel($subject)] : []);
+    }
+
+    /**
+     * Hash the subject model and return it.
+     *
+     * @param  string|object  $model
+     *
+     * @return string
+     */
+    protected function hashSubjectModel($model)
+    {
+        return sha1(is_object($model) ? get_class($model) : $model);
+    }
+
+    /**
+     * Check if the subject model matches the one saved in the token.
+     *
+     * @param  string|object  $model
+     *
+     * @return bool
+     */
+    public function checkSubjectModel($model)
+    {
+        if (($prv = $this->payload()->get('prv')) === null) {
+            return true;
+        }
+
+        return $this->hashSubjectModel($model) === $prv;
+    }
+
+    /**
+     * Set the token.
+     *
+     * @param  \Ns147\SodiumAuth\Token|string  $token
+     *
+     * @return $this
+     */
+    public function setToken($token)
+    {
+        $this->token = $token instanceof Token ? $token : new Token($token);
+
+        return $this;
+    }
+
+    /**
+     * Unset the current token.
+     *
+     * @return $this
+     */
+    public function unsetToken()
+    {
+        $this->token = null;
+
+        return $this;
+    }
+
+    /**
+     * Ensure that a token is available.
+     *
+     * @throws xception
+     *
+     * @return void
+     */
+    protected function requireToken()
+    {
+        if (! $this->token) {
+            throw new Exception('A token is required');
+        }
+    }
+
+    /**
+     * Set the request instance.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     *
+     * @return $this
+     */
+    public function setRequest(Request $request)
+    {
+        $this->parser->setRequest($request);
+
+        return $this;
+    }
+
+    /**
+     * Set whether the subject should be "locked".
+     *
+     * @param  bool  $lock
+     *
+     * @return $this
+     */
+    public function lockSubject($lock)
+    {
+        $this->lockSubject = $lock;
+
+        return $this;
+    }
+
+    /**
+     * Get the Manager instance.
+     *
+     * @return \Ns147\SodiumAuth\Manager
+     */
+    public function manager()
+    {
+        return $this->manager;
+    }
+
+    /**
+     * Get the Parser instance.
+     *
+     * @return \Ns147\SodiumAuth\Http\Parser\Parser
+     */
+    public function parser()
+    {
+        return $this->parser;
+    }
+
+    /**
+     * Get the Payload Factory.
+     *
+     * @return \Ns147\SodiumAuth\Factory
+     */
+    public function factory()
+    {
+        return $this->manager->getPayloadFactory();
+    }
+
+    /**
+     * Get the Blacklist.
+     *
+     * @return \Ns147\SodiumAuth\Blacklist
+     */
+    public function blacklist()
+    {
+        return $this->manager->getBlacklist();
+    }
+
+    /**
+     * Magically call the Token Manager.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     *
+     * @throws \BadMethodCallException
+     *
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        if (method_exists($this->manager, $method)) {
+            return call_user_func_array([$this->manager, $method], $parameters);
+        }
+
+        throw new BadMethodCallException("Method [$method] does not exist.");
     }
 }
