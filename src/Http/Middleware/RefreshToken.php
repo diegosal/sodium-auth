@@ -3,7 +3,7 @@
 namespace Ns147\SodiumAuth\Http\Middleware;
 
 use Closure;
-use Ns147\SodiumAuth\Exceptions\JWTException;
+use Ns147\SodiumAuth\Exceptions\TokenException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class RefreshToken extends BaseMiddleware
@@ -24,7 +24,7 @@ class RefreshToken extends BaseMiddleware
 
         try {
             $token = $this->auth->parseToken()->refresh();
-        } catch (JWTException $e) {
+        } catch (TokenException $e) {
             throw new UnauthorizedHttpException('jwt-auth', $e->getMessage(), $e, $e->getCode());
         }
 

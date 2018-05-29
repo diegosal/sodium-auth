@@ -1,6 +1,6 @@
 <?php
 
-namespace Ns147\SodiumAuth\Providers\Paseteo;
+namespace Ns147\SodiumAuth\Providers\Token;
 
 use Carbon\Carbon;
 use ParagonIE\Paseto\Builder;
@@ -9,6 +9,7 @@ use ParagonIE\Paseto\Protocol\Version2;
 use ParagonIE\Paseto\Exception\PasetoException;
 use ParagonIE\Paseto\Keys\AsymmetricSecretKey;
 use ParagonIE\Paseto\Keys\AsymmetricPublicKey;
+use ParagonIE\Paseto\ProtocolCollection;
 use ParagonIE\Paseto\Parser;
 use ParagonIE\Paseto\Rules\{
     IdentifiedBy,
@@ -24,7 +25,7 @@ use Ns147\SodiumAuth\Support\Utils;
 use Ns147\SodiumAuth\Exceptions\TokenInvalidException;
 use Ns147\SodiumAuth\Exceptions\TokenException;
 
-class ApiTokenFactory implements Token
+class TokenProvider implements Token
 {
     /**
      * The TTL.
@@ -86,12 +87,12 @@ class ApiTokenFactory implements Token
      */
     protected function setParser()
     {
-        $private = AsymmetricSecretKey::fromEncodedString($secret);
+        $private = AsymmetricSecretKey::fromEncodedString($this->secret);
         return new Parser(
             ProtocolCollection::v2(),
             Purpose::public(),
             $private->getPublicKey(),
-            [new IdentifiedBy($issuedBy), new Subject($subject)]
+            [new IdentifiedBy($this->issuedBy), new Subject($this->subject)]
         );
     }
 

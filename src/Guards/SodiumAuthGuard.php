@@ -10,7 +10,7 @@ use Ns147\SodiumAuth\Contracts\TokenSubject;
 use Ns147\SodiumAuth\Exceptions\TokenException;
 use Illuminate\Contracts\Auth\UserProvider;
 use Ns147\SodiumAuth\Exceptions\UserNotDefinedException;
-use Ns147\SodiumAuth;
+use Ns147\SodiumAuth\SAuth;
 
 class SodiumAuthGuard implements Guard
 {
@@ -24,9 +24,9 @@ class SodiumAuthGuard implements Guard
     protected $lastAttempted;
 
     /**
-     * The JWT instance.
+     * The Token instance.
      *
-     * @var \Ns147\SodiumAuth\SodiumAuth
+     * @var \Ns147\SodiumAuth\SAuth
      */
     protected $sodiumAuth;
 
@@ -40,13 +40,13 @@ class SodiumAuthGuard implements Guard
     /**
      * Instantiate the class.
      *
-     * @param  \Ns147\SodiumAuth\SodiumAuth  $sodiumAuth
+     * @param  \Ns147\SodiumAuth\SAuth  $sodiumAuth
      * @param  \Illuminate\Contracts\Auth\UserProvider  $provider
      * @param  \Illuminate\Http\Request  $request
      *
      * @return void
      */
-    public function __construct(SodiumAuth $sodiumAuth, UserProvider $provider, Request $request)
+    public function __construct(SAuth $sodiumAuth, UserProvider $provider, Request $request)
     {
         $this->sodiumAuth = $sodiumAuth;
         $this->provider = $provider;

@@ -5,7 +5,7 @@ namespace Ns147\SodiumAuth\Exceptions;
 use Exception;
 use Ns147\SodiumAuth\Claims\Claim;
 
-class InvalidClaimException extends JWTException
+class InvalidClaimException extends TokenException
 {
     /**
      * Constructor.

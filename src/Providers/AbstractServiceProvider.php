@@ -12,7 +12,7 @@ use Ns147\SodiumAuth\Http\Parser\Parser;
 use Ns147\SodiumAuth\Http\Parser\Cookies;
 use Illuminate\Support\ServiceProvider;
 use Ns147\SodiumAuth\Http\Middleware\Check;
-use Ns147\SodiumAuth\Providers\Token\ApiTokenFactory;
+use Ns147\SodiumAuth\Providers\Token\TokenProvider;
 use Ns147\SodiumAuth\Http\Parser\AuthHeaders;
 use Ns147\SodiumAuth\Http\Parser\InputSource;
 use Ns147\SodiumAuth\Http\Parser\QueryString;
@@ -92,26 +92,6 @@ abstract class AbstractServiceProvider extends ServiceProvider
     }
 
     /**
-     * Extend Laravel's Auth.
-     *
-     * @return void
-     */
-    protected function extendAuthGuard()
-    {
-        $this->app['auth']->extend('sodium', function ($app, $name, array $config) {
-            $guard = new JwtGuard(
-                $app['ns147.sodium'],
-                $app['auth']->createUserProvider($config['provider']),
-                $app['request']
-            );
-
-            $app->refresh('request', $guard, 'setRequest');
-
-            return $guard;
-        });
-    }
-
-    /**
      * Bind some aliases.
      *
      * @return void
@@ -120,8 +100,8 @@ abstract class AbstractServiceProvider extends ServiceProvider
     {
         $this->app->alias('ns147.sodium', SodiumAuth::class);
         $this->app->alias('ns147.sodium.auth', SAuth::class);
-        $this->app->alias('ns147.sodium.provider.sodium', TokenContract::class);
-        $this->app->alias('ns147.sodium.provider.sodium.apitokenfactory', ApiTokenFactory::class);
+        $this->app->alias('ns147.sodium.provider.token', TokenContract::class);
+        $this->app->alias('ns147.sodium.provider.tokenprovider', TokenProvider::class);
         $this->app->alias('ns147.sodium.provider.auth', Auth::class);
         $this->app->alias('ns147.sodium.provider.storage', Storage::class);
         $this->app->alias('ns147.sodium.manager', Manager::class);
@@ -139,8 +119,8 @@ abstract class AbstractServiceProvider extends ServiceProvider
     {
         $this->registerTokenFactoryProvider();
 
-        $this->app->singleton('ns147.sodium.provider.sodium', function ($app) {
-            return $this->getConfigInstance('providers.sodium');
+        $this->app->singleton('ns147.sodium.provider.token', function ($app) {
+            return $this->getConfigInstance('providers.token');
         });
     }
 
@@ -152,8 +132,8 @@ abstract class AbstractServiceProvider extends ServiceProvider
      */
     protected function registerTokenFactoryProvider()
     {
-        $this->app->singleton('ns147.sodium.provider.sodium.apitokenfactory', function ($app) {
-            return new ApiTokenFactory(
+        $this->app->singleton('ns147.sodium.provider.tokenprovider', function ($app) {
+            return new TokenProvider(
                 $this->config('paseto.private_key'),
                 $this->config('paseto.public_key'),
                 $this->config('paseto.shared_key'),
@@ -195,7 +175,7 @@ abstract class AbstractServiceProvider extends ServiceProvider
     {
         $this->app->singleton('ns147.sodium.manager', function ($app) {
             $instance = new Manager(
-                $app['ns147.sodium.provider.sodium'],
+                $app['ns147.sodium.provider.token'],
                 $app['ns147.sodium.blacklist'],
                 $app['ns147.sodium.payload.factory']
             );
@@ -374,6 +354,26 @@ abstract class AbstractServiceProvider extends ServiceProvider
         });
         $this->app->singleton('ns147.sodium.token.key', function () {
             return new GenerateTokenKey;
+        });
+    }
+
+    /**
+     * Extend Laravel's Auth.
+     *
+     * @return void
+     */
+    protected function extendAuthGuard()
+    {
+        $this->app['auth']->extend('sodium', function ($app, $name, array $config) {
+            $guard = new SodiumAuthGuard(
+                $app['ns147.sodium.auth'],
+                $app['auth']->createUserProvider($config['provider']),
+                $app['request']
+            );
+
+            $app->refresh('request', $guard, 'setRequest');
+
+            return $guard;
         });
     }
 }
