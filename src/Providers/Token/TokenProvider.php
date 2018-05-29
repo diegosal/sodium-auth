@@ -24,6 +24,7 @@ use Ns147\SodiumAuth\Contracts\Providers\Token;
 use Ns147\SodiumAuth\Support\Utils;
 use Ns147\SodiumAuth\Exceptions\TokenInvalidException;
 use Ns147\SodiumAuth\Exceptions\TokenException;
+use Ns147\SodiumAuth\Claims\Collection;
 
 class TokenProvider implements Token
 {
@@ -49,20 +50,6 @@ class TokenProvider implements Token
     protected $secret;
 
     /**
-     * The subject.
-     *
-     * @var string  $subject
-    */
-    protected $subject;
-
-    /**
-     * The issuedBy.
-     *
-     * @var string  $issuedBy
-    */
-    protected $issuedBy;
-
-    /**
      * Create the Paseto provider.
      * @param  string  $secret
      * @param  string  $subject
@@ -71,11 +58,9 @@ class TokenProvider implements Token
      *
      * @return void
      */
-    public function __construct($secret, $issuedBy, $subject, $ttl = 60)
+    public function __construct($secret, $ttl = 60)
     {
         $this->secret = $secret;
-        $this->issuedBy = $issuedBy;
-        $this->subject = $subject;
         $this->ttl = $ttl;
         $this->parser = $this->setParser();
     }
@@ -91,8 +76,7 @@ class TokenProvider implements Token
         return new Parser(
             ProtocolCollection::v2(),
             Purpose::public(),
-            $private->getPublicKey(),
-            [new IdentifiedBy($this->issuedBy), new Subject($this->subject)]
+            $private->getPublicKey()
         );
     }
 
@@ -108,12 +92,10 @@ class TokenProvider implements Token
     public function encode(array $payload)
     {
         try {
-            $private = AsymmetricSecretKey::fromEncodedString($secret);
+            $private = AsymmetricSecretKey::fromEncodedString($this->secret);
 
             $token = (new Builder())
                 ->setKey($private)
-                ->setJti($issuedBy)
-                ->setSubject($subject)
                 ->setVersion(new Version2())
                 ->setIssuedAt(Utils::now())
                 ->setPurpose(Purpose::public())
@@ -138,8 +120,8 @@ class TokenProvider implements Token
     public function decode($token)
     {
         try {
-            $jsonToken = $parser->parse($token);
-        } catch (PasetoException $ex) {
+            $jsonToken = $this->parser->parse($token);
+        } catch (PasetoException $e) {
             throw new TokenInvalidException('Could not decode token: '.$e->getMessage(), $e->getCode(), $e);
         }
 

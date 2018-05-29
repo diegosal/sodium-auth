@@ -3,20 +3,41 @@
 namespace Ns147\SodiumAuth\Test\Providers\Auth;
 
 use Mockery;
-use Ns147\SodiumAuth\Providers\Auth\IlluminateAuthAdapter;
+use Carbon\Carbon;
+use Illuminate\Contracts\Auth\Guard;
+use Ns147\SodiumAuth\Providers\Auth\Illuminate as Auth;
 use Tests\TestCase;
 
-class IlluminateAuthAdapterTest extends TestCase
+class IlluminateTest extends TestCase
 {
+    /**
+     * @var \Mockery\MockInterface|\Illuminate\Contracts\Auth\Guard
+     */
+    protected $authManager;
+
+    /**
+     * @var \Ns147\SodiumAuth\Providers\Auth\Illuminate
+     */
+    protected $auth;
+
+    protected $testNowTimestamp;
+
     public function setUp()
     {
-        $this->authManager = Mockery::mock('Illuminate\Auth\AuthManager');
-        $this->auth = new IlluminateAuthAdapter($this->authManager);
+        parent::setUp();
+
+        $this->authManager = Mockery::mock(Guard::class);
+        $this->auth = new Auth($this->authManager);
+        Carbon::setTestNow($now = Carbon::now());
+        $this->testNowTimestamp = $now->getTimestamp();
     }
 
     public function tearDown()
     {
+        Carbon::setTestNow();
         Mockery::close();
+
+        parent::tearDown();
     }
 
     /** @test */
@@ -41,17 +62,9 @@ class IlluminateAuthAdapterTest extends TestCase
     }
 
     /** @test */
-    public function it_should_bubble_exceptions_from_auth()
-    {
-        $this->authManager->shouldReceive('onceUsingId')->once()->with(123)->andThrow(new \Exception('Some auth failure'));
-        $this->setExpectedException('Exception', 'Some auth failure');
-        $this->auth->byId(123);
-    }
-
-    /** @test */
     public function it_should_return_the_currently_authenticated_user()
     {
         $this->authManager->shouldReceive('user')->once()->andReturn((object) ['id' => 1]);
-        $this->assertEquals($this->auth->user()->id, 1);
+        $this->assertSame($this->auth->user()->id, 1);
     }
 }
