@@ -5,10 +5,12 @@ namespace Ns147\SodiumAuth;
 use BadMethodCallException;
 use Illuminate\Http\Request;
 use Ns147\SodiumAuth\Http\Parser\Parser;
-use Ns147\SodiumAuth\Contracts\SodiumAuthSubject;
-
+use Ns147\SodiumAuth\Support\CustomClaims;
+use Ns147\SodiumAuth\Exceptions\TokenException;
+use Ns147\SodiumAuth\Contracts\TokenSubject;
 class SodiumAuth
 {
+    use CustomClaims;
 
     /**
      * The authentication manager.
@@ -39,7 +41,7 @@ class SodiumAuth
     protected $lockSubject = true;
 
     /**
-     * JWT constructor.
+     * SodiumAuth constructor.
      *
      * @param  \Ns147\SodiumAuth\Manager  $manager
      * @param  \Ns147\SodiumAuth\Http\Parser\Parser  $parser
@@ -55,11 +57,11 @@ class SodiumAuth
     /**
      * Generate a token for a given subject.
      *
-     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $subject
+     * @param  \Ns147\SodiumAuth\Contracts\TokenSubject  $subject
      *
      * @return string
      */
-    public function fromSubject(SodiumAuthSubject $subject)
+    public function fromSubject(TokenSubject $subject)
     {
         $payload = $this->makePayload($subject);
 
@@ -69,11 +71,11 @@ class SodiumAuth
     /**
      * Alias to generate a token for a given user.
      *
-     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $user
+     * @param  \Ns147\SodiumAuth\Contracts\TokenSubject  $user
      *
      * @return string
      */
-    public function fromUser(SodiumAuthSubject $user)
+    public function fromUser(TokenSubject $user)
     {
         return $this->fromSubject($user);
     }
@@ -115,7 +117,7 @@ class SodiumAuth
      * Alias to get the payload, and as a result checks that
      * the token is valid i.e. not expired or blacklisted.
      *
-     * @throws Exception
+     * @throws \Ns147\SodiumAuth\Exceptions\TokenException
      *
      * @return \Ns147\SodiumAuth\Payload
      */
@@ -135,7 +137,7 @@ class SodiumAuth
     {
         try {
             $payload = $this->checkOrFail();
-        } catch (Exception $e) {
+        } catch (TokenException $e) {
             return false;
         }
 
@@ -152,7 +154,7 @@ class SodiumAuth
         if ($this->token === null) {
             try {
                 $this->parseToken();
-            } catch (Exception $e) {
+            } catch (TokenException $e) {
                 $this->token = null;
             }
         }
@@ -163,14 +165,14 @@ class SodiumAuth
     /**
      * Parse the token from the request.
      *
-     * @throws Exception
+     * @throws \Ns147\SodiumAuth\Exceptions\TokenException
      *
      * @return $this
      */
     public function parseToken()
     {
         if (! $token = $this->parser->parseToken()) {
-            throw new Exception('The token could not be parsed from the request');
+            throw new TokenException('The token could not be parsed from the request');
         }
 
         return $this->setToken($token);
@@ -213,11 +215,11 @@ class SodiumAuth
     /**
      * Create a Payload instance.
      *
-     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $subject
+     * @param  \Ns147\SodiumAuth\Contracts\TokenSubject  $subject
      *
      * @return \Ns147\SodiumAuth\Payload
      */
-    public function makePayload(SodiumAuthSubject $subject)
+    public function makePayload(TokenSubject $subject)
     {
         return $this->factory()->customClaims($this->getClaimsArray($subject))->make();
     }
@@ -225,27 +227,27 @@ class SodiumAuth
     /**
      * Build the claims array and return it.
      *
-     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $subject
+     * @param  \Ns147\SodiumAuth\Contracts\TokenSubject  $subject
      *
      * @return array
      */
-    protected function getClaimsArray(SodiumAuthSubject $subject)
+    protected function getClaimsArray(TokenSubject $subject)
     {
         return array_merge(
             $this->getClaimsForSubject($subject),
-            $subject->getTokenCustomClaims(),
-            $this->customClaims
+            $subject->getTokenCustomClaims(), // custom claims from TokenSubject method
+            $this->customClaims // custom claims from inline setter
         );
     }
 
     /**
      * Get the claims associated with a given subject.
      *
-     * @param  \Ns147\SodiumAuth\Contracts\SodiumAuthSubject  $subject
+     * @param  \Ns147\SodiumAuth\Contracts\TokenSubject  $subject
      *
      * @return array
      */
-    protected function getClaimsForSubject(SodiumAuthSubject $subject)
+    protected function getClaimsForSubject(TokenSubject $subject)
     {
         return array_merge([
             'sub' => $subject->getTokenIdentifier(),
@@ -309,14 +311,14 @@ class SodiumAuth
     /**
      * Ensure that a token is available.
      *
-     * @throws xception
+     * @throws \Ns147\SodiumAuth\Exceptions\TokenException
      *
      * @return void
      */
     protected function requireToken()
     {
         if (! $this->token) {
-            throw new Exception('A token is required');
+            throw new TokenException('A token is required');
         }
     }
 

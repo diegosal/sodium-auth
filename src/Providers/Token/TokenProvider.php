@@ -1,6 +1,6 @@
 <?php
 
-namespace Ns147\SodiumAuth\Providers\Paseteo;
+namespace Ns147\SodiumAuth\Providers\Token;
 
 use Carbon\Carbon;
 use ParagonIE\Paseto\Builder;
@@ -9,6 +9,7 @@ use ParagonIE\Paseto\Protocol\Version2;
 use ParagonIE\Paseto\Exception\PasetoException;
 use ParagonIE\Paseto\Keys\AsymmetricSecretKey;
 use ParagonIE\Paseto\Keys\AsymmetricPublicKey;
+use ParagonIE\Paseto\ProtocolCollection;
 use ParagonIE\Paseto\Parser;
 use ParagonIE\Paseto\Rules\{
     IdentifiedBy,
@@ -23,8 +24,9 @@ use Ns147\SodiumAuth\Contracts\Providers\Token;
 use Ns147\SodiumAuth\Support\Utils;
 use Ns147\SodiumAuth\Exceptions\TokenInvalidException;
 use Ns147\SodiumAuth\Exceptions\TokenException;
+use Ns147\SodiumAuth\Claims\Collection;
 
-class ApiTokenFactory implements Token
+class TokenProvider implements Token
 {
     /**
      * The TTL.
@@ -48,20 +50,6 @@ class ApiTokenFactory implements Token
     protected $secret;
 
     /**
-     * The subject.
-     *
-     * @var string  $subject
-    */
-    protected $subject;
-
-    /**
-     * The issuedBy.
-     *
-     * @var string  $issuedBy
-    */
-    protected $issuedBy;
-
-    /**
      * Create the Paseto provider.
      * @param  string  $secret
      * @param  string  $subject
@@ -70,11 +58,9 @@ class ApiTokenFactory implements Token
      *
      * @return void
      */
-    public function __construct($secret, $issuedBy, $subject, $ttl = 60)
+    public function __construct($secret, $ttl = 60)
     {
         $this->secret = $secret;
-        $this->issuedBy = $issuedBy;
-        $this->subject = $subject;
         $this->ttl = $ttl;
         $this->parser = $this->setParser();
     }
@@ -86,12 +72,11 @@ class ApiTokenFactory implements Token
      */
     protected function setParser()
     {
-        $private = AsymmetricSecretKey::fromEncodedString($secret);
+        $private = AsymmetricSecretKey::fromEncodedString($this->secret);
         return new Parser(
             ProtocolCollection::v2(),
             Purpose::public(),
-            $private->getPublicKey(),
-            [new IdentifiedBy($issuedBy), new Subject($subject)]
+            $private->getPublicKey()
         );
     }
 
@@ -107,12 +92,10 @@ class ApiTokenFactory implements Token
     public function encode(array $payload)
     {
         try {
-            $private = AsymmetricSecretKey::fromEncodedString($secret);
+            $private = AsymmetricSecretKey::fromEncodedString($this->secret);
 
             $token = (new Builder())
                 ->setKey($private)
-                ->setJti($issuedBy)
-                ->setSubject($subject)
                 ->setVersion(new Version2())
                 ->setIssuedAt(Utils::now())
                 ->setPurpose(Purpose::public())
@@ -137,8 +120,8 @@ class ApiTokenFactory implements Token
     public function decode($token)
     {
         try {
-            $jsonToken = $parser->parse($token);
-        } catch (PasetoException $ex) {
+            $jsonToken = $this->parser->parse($token);
+        } catch (PasetoException $e) {
             throw new TokenInvalidException('Could not decode token: '.$e->getMessage(), $e->getCode(), $e);
         }
 

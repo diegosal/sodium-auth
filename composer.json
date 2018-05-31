@@ -51,7 +51,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Ns147\\SodiumAuth\\": "tests/"
+            "Ns147\\SodiumAuth\\Test\\": "tests/"
         }
     },
     "extra": {

@@ -50,7 +50,7 @@ class Manager
     /**
      * Constructor.
      *
-     * @param  \Ns147\SodiumAuth\Contracts\Providers\JWT  $provider
+     * @param  \Ns147\SodiumAuth\Contracts\Providers\Token  $provider
      * @param  \Ns147\SodiumAuth\Blacklist  $blacklist
      * @param  \Ns147\SodiumAuth\Factory  $payloadFactory
      *
@@ -181,7 +181,7 @@ class Manager
     }
 
     /**
-     * Get the JWTProvider instance.
+     * Get the Token Provider instance.
      *
      * @return \Ns147\SodiumAuth\Contracts\Providers\Token
      */

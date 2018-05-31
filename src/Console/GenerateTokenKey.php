@@ -22,10 +22,9 @@ final class GenerateTokenKey extends GenerateCommand
     public function handle()
     {
         $pair = sodium_crypto_sign_keypair();
-        $publicKey = $privateKey->getPublicKey();
 
         $key = Base64UrlSafe::encode(random_bytes(SODIUM_CRYPTO_AEAD_CHACHA20POLY1305_KEYBYTES));
-        $$public = Base64UrlSafe::encode(sodium_crypto_sign_publickey($pair));
+        $public = Base64UrlSafe::encode(sodium_crypto_sign_publickey($pair));
         $private = Base64UrlSafe::encode(sodium_crypto_sign_secretkey($pair));
 
         try {

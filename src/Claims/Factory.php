@@ -39,7 +39,7 @@ class Factory
         'exp' => Expiration::class,
         'iat' => IssuedAt::class,
         'iss' => Issuer::class,
-        'jti' => JwtId::class,
+        'jti' => TokenId::class,
         'nbf' => NotBefore::class,
         'sub' => Subject::class,
     ];
@@ -142,7 +142,7 @@ class Factory
     }
 
     /**
-     * Get the JWT Id (jti) claim.
+     * Get the Token Id (jti) claim.
      *
      * @return string
      */

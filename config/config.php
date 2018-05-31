@@ -242,14 +242,14 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | JWT Provider
+        | token Provider
         |--------------------------------------------------------------------------
         |
         | Specify the provider that is used to create and decode the tokens.
         |
         */
 
-        'jwt' => Ns147\SodiumAuth\Providers\JWT\ApiTokenFactory::class,
+        'token' => Ns147\SodiumAuth\Providers\Token\TokenProvider::class,
 
         /*
         |--------------------------------------------------------------------------
@@ -260,7 +260,7 @@ return [
         |
         */
 
-        'auth' => Ns147\SodiumAuth\Providers\Auth\ApiTokenFactory::class,
+        'auth' => Ns147\SodiumAuth\Providers\Auth\Illuminate::class,
 
         /*
         |--------------------------------------------------------------------------
@@ -271,7 +271,7 @@ return [
         |
         */
 
-        'storage' => Ns147\SodiumAuth\Providers\Storage\ApiTokenFactory::class,
+        'storage' => Ns147\SodiumAuth\Providers\Storage\Illuminate::class,
 
     ],
 

@@ -271,7 +271,7 @@ class Payload implements ArrayAccess, Arrayable, Countable, Jsonable, JsonSerial
     {
         if (preg_match('/get(.+)\b/i', $method, $matches)) {
             foreach ($this->claims as $claim) {
-                if (get_class($claim) === 'Tymon\\JWTAuth\\Claims\\'.$matches[1]) {
+                if (get_class($claim) === 'Ns147\\SodiumAuth\\Claims\\'.$matches[1]) {
                     return $claim->getValue();
                 }
             }

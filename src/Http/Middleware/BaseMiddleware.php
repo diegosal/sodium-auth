@@ -5,13 +5,13 @@ namespace Ns147\SodiumAuth\Http\Middleware;
 
 use Ns147\SodiumAuth\SAuth;
 use Illuminate\Http\Request;
-use Ns147\SodiumAuth\Exceptions\JWTException;
+use Ns147\SodiumAuth\Exceptions\TokenException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 abstract class BaseMiddleware
 {
     /**
-     * The JWT Authenticator.
+     * The Token Authenticator.
      *
      * @var \Ns147\SodiumAuth\SAuth
      */
@@ -62,7 +62,7 @@ abstract class BaseMiddleware
             if (! $this->auth->parseToken()->authenticate()) {
                 throw new UnauthorizedHttpException('sodium-auth', 'User not found');
             }
-        } catch (JWTException $e) {
+        } catch (TokenException $e) {
             throw new UnauthorizedHttpException('sodium-auth', $e->getMessage(), $e, $e->getCode());
         }
     }
