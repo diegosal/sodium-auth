@@ -135,8 +135,6 @@ abstract class AbstractServiceProvider extends ServiceProvider
         $this->app->singleton('ns147.sodium.provider.tokenprovider', function ($app) {
             return new TokenProvider(
                 $this->config('paseto.private_key'),
-                $this->config('paseto.public_key'),
-                $this->config('paseto.shared_key'),
                 $this->config('ttl')
             );
         });
@@ -366,7 +364,7 @@ abstract class AbstractServiceProvider extends ServiceProvider
     {
         $this->app['auth']->extend('sodium', function ($app, $name, array $config) {
             $guard = new SodiumAuthGuard(
-                $app['ns147.sodium.auth'],
+                $app['ns147.sodium'],
                 $app['auth']->createUserProvider($config['provider']),
                 $app['request']
             );

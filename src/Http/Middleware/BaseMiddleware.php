@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 abstract class BaseMiddleware
 {
     /**
-     * The JWT Authenticator.
+     * The Token Authenticator.
      *
      * @var \Ns147\SodiumAuth\SAuth
      */

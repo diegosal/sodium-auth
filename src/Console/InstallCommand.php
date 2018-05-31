@@ -39,5 +39,6 @@ class InstallCommand extends Command
         $this->call('sodium:generate:shared:authentication', ['--force' => $this->option('force')]);
         $this->call('sodium:generate:shared:encryption', ['--force' => $this->option('force')]);
         $this->call('sodium:generate:sign:pair', ['--force' => $this->option('force')]);
+        $this->call('sodium:generate:paseto:key', ['--force' => $this->option('force')]);
     }
 }

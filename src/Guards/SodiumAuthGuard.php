@@ -1,5 +1,4 @@
 <?php
-
 namespace Ns147\SodiumAuth\Guards;
 
 use BadMethodCallException;
@@ -10,7 +9,7 @@ use Ns147\SodiumAuth\Contracts\TokenSubject;
 use Ns147\SodiumAuth\Exceptions\TokenException;
 use Illuminate\Contracts\Auth\UserProvider;
 use Ns147\SodiumAuth\Exceptions\UserNotDefinedException;
-use Ns147\SodiumAuth\SAuth;
+use Ns147\SodiumAuth\SodiumAuth;
 
 class SodiumAuthGuard implements Guard
 {
@@ -24,9 +23,9 @@ class SodiumAuthGuard implements Guard
     protected $lastAttempted;
 
     /**
-     * The Token instance.
+     * The SodiumAuth instance.
      *
-     * @var \Ns147\SodiumAuth\SAuth
+     * @var \Ns147\SodiumAuth\SodiumAuth
      */
     protected $sodiumAuth;
 
@@ -40,13 +39,13 @@ class SodiumAuthGuard implements Guard
     /**
      * Instantiate the class.
      *
-     * @param  \Ns147\SodiumAuth\SAuth  $sodiumAuth
+     * @param  \Ns147\SodiumAuth\SodiumAuth  $sodiumAuth
      * @param  \Illuminate\Contracts\Auth\UserProvider  $provider
      * @param  \Illuminate\Http\Request  $request
      *
      * @return void
      */
-    public function __construct(SAuth $sodiumAuth, UserProvider $provider, Request $request)
+    public function __construct(SodiumAuth $sodiumAuth, UserProvider $provider, Request $request)
     {
         $this->sodiumAuth = $sodiumAuth;
         $this->provider = $provider;
@@ -400,7 +399,7 @@ class SodiumAuthGuard implements Guard
      *
      * @throws \Ns147\SodiumAuth\Exceptions\TokenException
      *
-     * @return \Ns147\SodiumAuth\sodiumAuth
+     * @return \Ns147\SodiumAuth\SodiumAuth
      */
     protected function requireToken()
     {
@@ -412,7 +411,7 @@ class SodiumAuthGuard implements Guard
     }
 
     /**
-     * Magically call the Token instance.
+     * Magically call the SodiumAuth instance.
      *
      * @param  string  $method
      * @param  array  $parameters
